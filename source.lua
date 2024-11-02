@@ -1037,34 +1037,38 @@ local function checkFolder() if isfolder then if not isfolder(siriusValues.siriu
 local function isPanel(name) return not table.find({"Home", "Music", "Settings"}, name) end
 
 local function fetchFromCDN(path, write, savePath)
-	checkFolder()
+	pcall(function()
+		checkFolder()
 
-	local file = game:HttpGet(siriusValues.cdn..path) or nil
-	if not file then return end
-	if not write then return file end
+		local file = game:HttpGet(siriusValues.cdn..path) or nil
+		if not file then return end
+		if not write then return file end
 
 
-	writefile(siriusValues.siriusFolder.."/"..savePath, file)
+		writefile(siriusValues.siriusFolder.."/"..savePath, file)
 
-	return
+		return
+	end)
 end
 
 local function fetchIcon(iconName)
-	checkFolder()
+	pcall(function()
+		checkFolder()
 
-	local pathCDN = siriusValues.icons..iconName..".png"
-	local path = siriusValues.siriusFolder.."/Assets/"..iconName..".png"
+		local pathCDN = siriusValues.icons..iconName..".png"
+		local path = siriusValues.siriusFolder.."/Assets/"..iconName..".png"
 
-	if not isfile(path) then
-		local file = game:HttpGet(pathCDN)
-		if not file then return end
+		if not isfile(path) then
+			local file = game:HttpGet(pathCDN)
+			if not file then return end
 
-		writefile(path, file)
-	end
-	
-	local imageToReturn = getcustomasset(path)
+			writefile(path, file)
+		end
 
-	return imageToReturn
+		local imageToReturn = getcustomasset(path)
+
+		return imageToReturn
+	end)
 end
 
 local function storeOriginalText(element)
@@ -1200,7 +1204,7 @@ local function wipeTransparency(ins, target, checkSelf, tween, duration)
 				else
 					obj[property] = transparency
 				end
-				
+
 			end
 		end
 	end
@@ -1272,7 +1276,7 @@ local function queueNotification(Title, Description, Image)
 			newNotification.Title.Text = Title or "Unknown Title"
 			newNotification.Description.Text = Description or "Unknown Description"
 			newNotification.Time.Text = "now"
-			
+
 			-- Prepare for animation
 			newNotification.AnchorPoint = Vector2.new(0.5, 1)
 			newNotification.Position = UDim2.new(0.5, 0, -1, 0)
@@ -1293,14 +1297,14 @@ local function queueNotification(Title, Description, Image)
 			notificationSound.Volume = 0.65
 			notificationSound.PlayOnRemove = true
 			notificationSound:Destroy()
-			
-			
+
+
 			if not tonumber(Image) then
-				newNotification.Icon.Image = fetchIcon(Image)
+				newNotification.Icon.Image = 'rbxassetid://14317577326'
 			else
 				newNotification.Icon.Image = 'rbxassetid://'..Image or 0
 			end
-			
+
 			newNotification:TweenPosition(UDim2.new(0.5, 0, 0, newNotification.Size.Y.Offset + 2), "Out", "Quint", 0.9, true)
 			task.wait(0.1)
 			tweenService:Create(newNotification, TweenInfo.new(0.8, Enum.EasingStyle.Exponential), {Size = UDim2.new(0, 320, 0, newNotification.Description.TextBounds.Y + 50)}):Play()
@@ -1319,7 +1323,7 @@ local function queueNotification(Title, Description, Image)
 				Transparency = 0.98,
 				BrickColor = BrickColor.new("Institutional white")
 			})
-			
+
 			newNotification.Interact.MouseButton1Click:Connect(function()
 				local foundNotification = table.find(notifications, newNotification)
 				if foundNotification then table.remove(notifications, foundNotification) end
@@ -1386,7 +1390,7 @@ local function playNext()
 		newAudio.Name = "Audio"
 		currentAudio = newAudio
 	end
-	
+
 	musicPanel.Menu.TogglePlaying.ImageRectOffset = currentAudio.Playing and Vector2.new(804, 124) or Vector2.new(764, 244)
 	local asset = getcustomasset(siriusValues.siriusFolder.."/Music/"..musicQueue[1].sound)
 
@@ -1425,9 +1429,9 @@ local function addToQueue(file)
 	end
 	newAudio.Visible = true
 	newAudio.Duration.Text = ""
-	
+
 	table.insert(musicQueue, {sound = file, instanceName = newAudio.Name})
-	
+
 	local getLength = Instance.new("Sound", workspace)
 	getLength.SoundId = getcustomasset(siriusValues.siriusFolder.."/Music/"..file)
 	getLength.Volume = 0
@@ -1436,7 +1440,7 @@ local function addToQueue(file)
 	newAudio.Duration.Text = tostring(math.round(getLength.TimeLength)).."s"
 	getLength:Stop()
 	getLength:Destroy()
-	
+
 	newAudio.MouseEnter:Connect(function()
 		tweenService:Create(newAudio, TweenInfo.new(0.45, Enum.EasingStyle.Exponential), {BackgroundColor3 = Color3.fromRGB(100, 100, 100)}):Play()
 		tweenService:Create(newAudio.Close, TweenInfo.new(0.45, Enum.EasingStyle.Exponential), {ImageTransparency = 0}):Play()
@@ -1946,7 +1950,7 @@ local function closePanel(panelName, openingOther)
 			tweenService:Create(playerlistPanel.Interactions.List, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {ScrollBarImageTransparency = 1}):Play()
 
 		end
-		
+
 		tweenService:Create(panel.Icon, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {ImageTransparency = 1}):Play()
 		tweenService:Create(panel.Title, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {TextTransparency = 1}):Play()
 		tweenService:Create(panel.UIStroke, TweenInfo.new(0.2, Enum.EasingStyle.Quint), {Transparency = 1}):Play()
@@ -3786,34 +3790,34 @@ local function start()
 	toggle.Visible = not checkSetting("Hide Toggle Button").current
 
 	if not checkSetting("Load Hidden").current then 
-		if checkSetting("Startup Sound Effect").current then
-			local startupPath = siriusValues.siriusFolder.."/Assets/startup.wav"
-			local startupAsset
+		--if checkSetting("Startup Sound Effect").current then
+		--	local startupPath = siriusValues.siriusFolder.."/Assets/startup.wav"
+		--	local startupAsset
 
-			if isfile(startupPath) then
-				startupAsset = getcustomasset(startupPath) or nil
-			else
-				startupAsset = fetchFromCDN("startup.wav", true, "Assets/startup.wav")
-				startupAsset = isfile(startupPath) and getcustomasset(startupPath) or nil
-			end
+		--	if isfile(startupPath) then
+		--		startupAsset = getcustomasset(startupPath) or nil
+		--	else
+		--		startupAsset = fetchFromCDN("startup.wav", true, "Assets/startup.wav")
+		--		startupAsset = isfile(startupPath) and getcustomasset(startupPath) or nil
+		--	end
 
-			if not startupAsset then return end
+		--	if not startupAsset then return end
 
-			local startupSound = Instance.new("Sound")
-			startupSound.Parent = UI
-			startupSound.SoundId = startupAsset
-			startupSound.Name = "startupSound"
-			startupSound.Volume = 0.85
-			startupSound.PlayOnRemove = true
-			startupSound:Destroy()	
-		end
+		--	local startupSound = Instance.new("Sound")
+		--	startupSound.Parent = UI
+		--	startupSound.SoundId = startupAsset
+		--	startupSound.Name = "startupSound"
+		--	startupSound.Volume = 0.85
+		--	startupSound.PlayOnRemove = true
+		--	startupSound:Destroy()	
+		--end
 
 		openSmartBar()
 	else 
 		closeSmartBar() 
 	end
 
-	if script_key and not Essential and not Pro then
+	if script_key and not (Essential or Pro) then
 		queueNotification("License Error", "We've detected a key being placed above Sirius loadstring, however your key seems to be invalid. Make a support request at sirius.menu/discord to get this solved within minutes.", "document-minus")
 	end
 
@@ -3925,7 +3929,7 @@ musicPanel.Menu.Next.MouseButton1Click:Connect(function()
 		if musicPanel.Queue.List:FindFirstChild(tostring(musicQueue[1].instanceName)) then
 			musicPanel.Queue.List:FindFirstChild(tostring(musicQueue[1].instanceName)):Destroy()
 		end
-		
+
 		musicPanel.Menu.TogglePlaying.ImageRectOffset = currentAudio.Playing and Vector2.new(804, 124) or Vector2.new(764, 244)
 
 		table.remove(musicQueue, 1)
